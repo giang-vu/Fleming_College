@@ -1,4 +1,4 @@
-# Output:
+# Output Lab 2
 Exercise 1:
 ![alt text](https://user-images.githubusercontent.com/33945101/59165236-df00e600-8ae6-11e9-8527-cde333411a5c.png)
 Exercise 2:
