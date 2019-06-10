@@ -1,3 +1,19 @@
+/*
+I choose clock frequency XTAL = 20MHz.
+Each tick will consume: TCY = 4/20MHz = 0.2us
+
+The number of ticks in 1ms delay will be: 1ms/0.2us = 5000 ticks =0x1388 ticks
+The register value for TMR0H:TMR0L will be: 0xFFFF + 1 - 0x1388= 0XEC78
+I use 16-bit timer, internal clock, increment on L-to-H transition, no prescaler, so the value of T0CON will be:
+T0CON = 0b00000000 = 0
+
+The number of ticks in 0.75s delay will be: 0.75s/0.2us = 3,750,000 ticks
+Using the prescaler 1/256, so the ticks will be: 3,750,000/256 = 14648 ticks = 0x3938 ticks
+The register value for TMR0H:TMR0L will be: 0xFFFF + 1 - 0x3938= 0XC6C8
+I use 16-bit timer, internal clock, increment on L-to-H transition, prescaler 1/256, so the value of T0CON will be:
+T0CON = 0b00000111 = 0x07
+*/
+
 #include<P18F458.h>				//include PIC458 library
 #pragma config OSC=HS,OSCS=OFF		//configuring functions
 #pragma PWRT=OFF,BOR=ON,BORV=45
@@ -6,7 +22,6 @@
 #define RS PORTBbits.RB0		//defining bit RB0 as LCD's register Select bit 
 #define RW PORTBbits.RB1		//defining bit RB1 as LCD's Read/Write bit
 #define EN PORTBbits.RB2		//defininf bit RB2 as LCD's Enable bit
-#define button PORTEbits.RE2
 
 void delay1()
 {
@@ -28,6 +43,7 @@ wait:
 		}
 	}
 }
+
 void delay2()
 {
 	T0CON=0b00000111;			//setting Timer0
@@ -48,6 +64,7 @@ wait1:
 		}
 	}
 }
+
 void lcdcmd(unsigned char a)		//lcd command function
 {
 	PORTD=a;					//assigning command to PORTD
@@ -57,6 +74,7 @@ void lcdcmd(unsigned char a)		//lcd command function
 	delay1();					//delay of 1ms
 	EN=0;						//setting enable bit low to run the command
 }
+
 void lcddata(unsigned char a)		//lcd function for showing data 
 {
 	PORTD=a;					//putting data to PORTD
@@ -66,6 +84,7 @@ void lcddata(unsigned char a)		//lcd function for showing data
 	delay1();					//delay of 1ms
 	EN=0;						//setting enable bit low to run the command
 }
+
 void lcdinit()				//initializing LCD
 {
 	lcdcmd(0x38);		//configure LCD for 2 line display, 8 bit mode
@@ -77,37 +96,31 @@ void lcdinit()				//initializing LCD
 
 void main()
 {
-	unsigned char a[]="COMP-551";	//string for first line
-	unsigned char b[]="Giang";		//string for second line
-	unsigned char c[]="Linh";
-	unsigned char d[]="                ";
-	int i;				//interger variable
+	unsigned char a[]="COMP551";	//string for first line
+	unsigned char b[]="Interfacing 2017";	//string for second line
+	int i;			//interger variable
 	ADCON1=0x06;		//setting ADCON1 register
 	CMCON=0xFF;			//turning off all comparators
 	TRISB=0;			//initializing PORTB as output port
 	TRISD=0;			//initializing PORTD as output port
 	TRISEbits.TRISE2=1;	//initializing RE2 bit as input bit
-	while(1)			//infinite loop
+
+	while(1)		//infinite loop
 	{
 		lcdinit();		//initialize the LCD
 		lcdcmd(0x14);		//shifting cursor to right to centered the first string
 		lcdcmd(0x14);		//shifting cursor to right to centered the first string
 		lcdcmd(0x14);		//shifting cursor to right to centered the first string
 		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		for(i=0;i<8;i++)		//for loop for first string
+		for(i=0;i<7;i++)		//for loop for first string
 		{
 			lcddata(a[i]);		//sending one character at a time
 			lcdcmd(0x06);		//incrementing cursor
 		}
 		lcdcmd(0xC0);			//moving to next line
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		for(i=0;i<5;i++)		//for loop for second string
+		for(i=0;i<17;i++)		//for loop for second string
 		{
-			if(button==1)	//if button is release
+			if(PORTEbits.RE2==0)	//if button is pressed
 			{
 				lcddata(b[i]);		//send one character at a time
 				lcdcmd(0x06);		//incrementing cursor
@@ -115,42 +128,9 @@ void main()
 			}
 			else				//if button is not pressed
 			{
-wait1:
-				if(button==0)	
-				{	
-					goto wait1;		//hold the loop here
-				}
-				i--;			//return to previous character
-			}
-		}
-		lcdcmd(0xC0);			//moving to next line
-		for(i=0;i<16;i++)		//for loop for second string
-		{
-			lcddata(d[i]);		//send one character at a time
-			lcdcmd(0x06);		//incrementing cursor
-		}
-		lcdcmd(0xC0);			//moving to next line
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		lcdcmd(0x14);
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		lcdcmd(0x14);		//shifting cursor to right to centered the first string
-		for(i=0;i<4;i++)		//for loop for second string
-		{
-			if(button==1)	//if button is release
-			{
-				lcddata(c[i]);		//send one character at a time
-				lcdcmd(0x06);		//incrementing cursor
-				delay2();			//.75 second delay
-			}
-			else				//if button is not pressed
-			{
-wait2:
-				if(button==0)	
-				{	
-					goto wait2;		//hold the loop here
-				}
+here:
+				if(PORTEbits.RE2==1)	
+				goto here;		//hold the loop here
 				i--;			//return to previous character
 			}
 		}
