@@ -1,4 +1,4 @@
-# Output Lab 5
+# Output Lab 7
 Exercise 1:
 - For 95% duty cycle
 ![alt text](https://user-images.githubusercontent.com/33945101/59166056-e8904b00-8af2-11e9-98b2-fd486097c903.png)
