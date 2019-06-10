@@ -1,0 +1,44 @@
+# Create an Ansible playbook that accomplishes the following tasks:
+# - Installs nmap
+# - Installs figlet
+# - Installs Wireshark
+# - Installs Apache2
+# - Installs PHP5
+# - Installs the PHP-BCMATH library
+# - Adds a firewall rule to allow access to Port 8
+
+- name: Installation to client
+  hosts: all
+  tasks:
+          - name: Install required packages
+            package:
+                    name:
+                            - nmap
+                            - figlet
+                            - wireshark
+                            - apache2
+                    state: present
+          - name: Add repository to install php5.6
+            apt_repository:
+                    repo: ppa:ondrej/php
+          - name: Install php5.6 and php5.6-bcmath
+            package:
+                    name:
+                            - php5.6
+                            - php5.6-bcmath
+                    state: present
+          - name: Install ufw
+            package:
+                    name: ufw
+                    state: present
+          - name: Enable ufw
+            ufw:
+                    state: enabled
+          - name: Add firewall rule for SSH
+            ufw:
+                    rule: allow
+                    name: OpenSSH
+          - name: Add firewall rule for port 80
+            ufw:
+                    rule: allow
+                    port: 80
